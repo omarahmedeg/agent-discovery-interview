@@ -1,0 +1,82 @@
+[
+  {
+    "id": "Q1",
+    "text": "I'm getting a NullPointerException in a Java Spring controller when calling a service method. How do I track down the root cause?",
+    "correctAgentName": "code-debugging-assistant"
+  },
+  {
+    "id": "Q2",
+    "text": "My C++ program randomly segfaults only on large inputs. Help me debug the issue.",
+    "correctAgentName": "code-debugging-assistant"
+  },
+  {
+    "id": "Q3",
+    "text": "Design a REST API for a hotel booking system with endpoints for searching rooms, creating reservations, and canceling bookings.",
+    "correctAgentName": "api-design-advisor"
+  },
+  {
+    "id": "Q4",
+    "text": "What's a good pagination and filtering strategy for a public REST API listing users?",
+    "correctAgentName": "api-design-advisor"
+  },
+  {
+    "id": "Q5",
+    "text": "This PostgreSQL query joining orders and customers is very slow; how can I add indexes and rewrite it to be faster?",
+    "correctAgentName": "backend-database-optimizer"
+  },
+  {
+    "id": "Q6",
+    "text": "How should I design the database schema for an e-commerce cart and order system while avoiding redundancy?",
+    "correctAgentName": "backend-database-optimizer"
+  },
+  {
+    "id": "Q7",
+    "text": "Refactor this large React component into smaller components and avoid unnecessary re-renders.",
+    "correctAgentName": "frontend-ux-refiner"
+  },
+  {
+    "id": "Q8",
+    "text": "How can I make this modal dialog accessible with proper ARIA roles and keyboard navigation?",
+    "correctAgentName": "frontend-ux-refiner"
+  },
+  {
+    "id": "Q9",
+    "text": "My GitHub Actions pipeline for a Node.js app keeps failing on the test step. Help me debug and fix the CI configuration.",
+    "correctAgentName": "devops-ci-cd-orchestrator"
+  },
+  {
+    "id": "Q10",
+    "text": "Design a safe deployment strategy with blue-green or canary deployments for a high-traffic web API.",
+    "correctAgentName": "devops-ci-cd-orchestrator"
+  },
+  {
+    "id": "Q11",
+    "text": "Is this login endpoint vulnerable to SQL injection, and how can I fix it using parameterized queries?",
+    "correctAgentName": "secure-code-auditor"
+  },
+  {
+    "id": "Q12",
+    "text": "Review this React component for potential XSS vulnerabilities and suggest safer patterns.",
+    "correctAgentName": "secure-code-auditor"
+  },
+  {
+    "id": "Q13",
+    "text": "Write Jest unit tests for this React hook, including edge cases and error states.",
+    "correctAgentName": "test-automation-engineer"
+  },
+  {
+    "id": "Q14",
+    "text": "How should I structure end-to-end Cypress tests for a login and signup flow?",
+    "correctAgentName": "test-automation-engineer"
+  },
+  {
+    "id": "Q15",
+    "text": "Design a high-level architecture for a ride-sharing application, including services and data flows.",
+    "correctAgentName": "software-architecture-consultant"
+  },
+  {
+    "id": "Q16",
+    "text": "Compare a monolith vs microservices for a growing SaaS product and recommend when to split the monolith.",
+    "correctAgentName": "software-architecture-consultant"
+  }
+]

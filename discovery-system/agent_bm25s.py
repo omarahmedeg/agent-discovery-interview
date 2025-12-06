@@ -10,7 +10,24 @@ except Exception:
 
 # ---------- URL helper ----------
 
+# Port mapping based on agent names (matching real_software_a2a_agent.ts)
+AGENT_PORT_MAP = {
+    "code-debugging-assistant": 12001,
+    "api-design-advisor": 12002,
+    "performance-diagnostics-engineer": 12003,
+    "frontend-ux-refiner": 12004,
+    "devops-ci-cd-orchestrator": 12005,
+    "secure-code-auditor": 12006,
+    "test-automation-engineer": 12007,
+    "software-architecture-consultant": 12008,
+}
+
 def get_primary_url(agent: dict) -> str | None:
+    # 0) Check for simple top-level "url" field first
+    url = agent.get("url")
+    if isinstance(url, str) and (url.startswith("http://") or url.startswith("https://")):
+        return url
+    
     endpoints = agent.get("endpoints") or {}
 
     # 1) Prefer adaptive_resolver.url if it's a non-empty http(s) URL
@@ -29,7 +46,13 @@ def get_primary_url(agent: dict) -> str | None:
         if u.startswith("http://") or u.startswith("https://"):
             return u
 
-    # 3) Nothing usable found
+    # 3) For simple agents with just name/prompt, use agent name to look up port
+    name = agent.get("name")
+    if name and name in AGENT_PORT_MAP:
+        port = AGENT_PORT_MAP[name]
+        return f"http://localhost:{port}"
+
+    # 4) Nothing usable found
     return None
 
 
@@ -37,7 +60,7 @@ def get_primary_url(agent: dict) -> str | None:
 
 def doc_text(a: dict) -> str:
     name = a.get("name") or a.get("agent_name") or a.get("label") or a.get("id") or ""
-    desc = a.get("description") or ""
+    desc = a.get("description") or a.get("prompt") or ""
     tags = []
 
     # collect tags/keywords from skills/capabilities/provider/jurisdiction/endpoints
@@ -84,12 +107,12 @@ def doc_text(a: dict) -> str:
 
 # ---------- Public API ----------
 
-def load_agents(path: str = "agents.json") -> list[dict]:
+def load_agents(path: str = "agentList.json") -> list[dict]:
     """Load agents from a JSON file."""
     with open(path, "r", encoding="utf-8") as f:
         agents = json.load(f)
     if not isinstance(agents, list):
-        raise ValueError("agents.json must contain a JSON array")
+        raise ValueError("agents file must contain a JSON array")
     return agents
 
 

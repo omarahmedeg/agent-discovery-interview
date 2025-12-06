@@ -1,0 +1,155 @@
+[
+  {
+    "id": "12001",
+    "name": "code-debugging-assistant",
+    "description": "Specialized agent for debugging software issues, stack traces, and runtime errors across multiple languages.",
+    "url": "http://localhost:12001",
+    "skills": [
+      "runtime-error-diagnosis",
+      "logic-bug-analysis",
+      "performance-bug-investigation"
+    ],
+    "capabilities": [
+      "debugging",
+      "multi-language-support",
+      "runtime-error-analysis",
+      "logic-bug-detection",
+      "performance-profiling-support"
+    ],
+    "tags": ["debugging", "errors", "stack-traces", "bug-fixing"],
+    "languages": ["Java", "Python", "C++", "JavaScript", "TypeScript"]
+  },
+  {
+    "id": "12002",
+    "name": "api-design-advisor",
+    "description": "Agent focused on REST, GraphQL, and gRPC API design, including versioning, pagination, and best practices.",
+    "url": "http://localhost:12002",
+    "skills": [
+      "rest-api-design",
+      "graphql-schema-design",
+      "api-versioning-and-lifecycle"
+    ],
+    "capabilities": [
+      "api-design",
+      "rest",
+      "graphql",
+      "grpc",
+      "pagination",
+      "error-handling"
+    ],
+    "tags": ["api", "rest", "graphql", "design", "backend"]
+  },
+  {
+    "id": "12003",
+    "name": "backend-database-optimizer",
+    "description": "Agent specialized in backend performance, database schema tuning, and query optimization.",
+    "url": "http://localhost:12003",
+    "skills": [
+      "sql-query-optimization",
+      "schema-design-and-normalization",
+      "caching-strategy-advice"
+    ],
+    "capabilities": [
+      "database-optimization",
+      "schema-design",
+      "sql-explains",
+      "caching",
+      "backend-performance"
+    ],
+    "tags": ["databases", "postgresql", "mysql", "sql", "caching"]
+  },
+  {
+    "id": "12004",
+    "name": "frontend-ux-refiner",
+    "description": "Agent focused on frontend code quality, accessibility, and UI/UX improvements.",
+    "url": "http://localhost:12004",
+    "skills": [
+      "react-component-refactoring",
+      "accessibility-and-semantic-html",
+      "ui-ux-feedback"
+    ],
+    "capabilities": [
+      "frontend",
+      "react",
+      "accessibility",
+      "ui-ux-review",
+      "performance-tuning"
+    ],
+    "tags": ["frontend", "react", "ux", "accessibility", "javascript"]
+  },
+  {
+    "id": "12005",
+    "name": "devops-ci-cd-orchestrator",
+    "description": "Agent that helps design, debug, and optimize CI/CD pipelines and DevOps workflows.",
+    "url": "http://localhost:12005",
+    "skills": [
+      "pipeline-configuration",
+      "deployment-strategy-design",
+      "infrastructure-as-code-guidance"
+    ],
+    "capabilities": [
+      "ci-cd",
+      "devops",
+      "deployment",
+      "kubernetes-concepts",
+      "infrastructure-as-code"
+    ],
+    "tags": ["devops", "ci-cd", "github-actions", "kubernetes"]
+  },
+  {
+    "id": "12006",
+    "name": "secure-code-auditor",
+    "description": "Agent oriented around secure coding practices, threat modeling, and vulnerability detection.",
+    "url": "http://localhost:12006",
+    "skills": [
+      "vulnerability-review",
+      "secure-design-advice",
+      "security-best-practices"
+    ],
+    "capabilities": [
+      "security-review",
+      "threat-modeling",
+      "secure-coding",
+      "vulnerability-detection"
+    ],
+    "tags": ["security", "owasp", "xss", "sql-injection", "auth"]
+  },
+  {
+    "id": "12007",
+    "name": "test-automation-engineer",
+    "description": "Agent focused on unit/integration testing, test strategy, and automation frameworks.",
+    "url": "http://localhost:12007",
+    "skills": [
+      "unit-test-writing",
+      "integration-and-e2e-strategy",
+      "testing-pyramid-guidance"
+    ],
+    "capabilities": [
+      "testing",
+      "unit-tests",
+      "integration-tests",
+      "e2e-tests",
+      "test-strategy"
+    ],
+    "tags": ["testing", "jest", "pytest", "cypress", "qa"]
+  },
+  {
+    "id": "12008",
+    "name": "software-architecture-consultant",
+    "description": "Agent for high-level software architecture decisions, design tradeoffs, and system diagrams.",
+    "url": "http://localhost:12008",
+    "skills": [
+      "system-design-consulting",
+      "architecture-tradeoff-analysis",
+      "documentation-and-diagrams"
+    ],
+    "capabilities": [
+      "system-design",
+      "architecture",
+      "scalability",
+      "reliability",
+      "tradeoff-analysis"
+    ],
+    "tags": ["architecture", "system-design", "microservices", "scalability"]
+  }
+]

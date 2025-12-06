@@ -2,8 +2,13 @@ import os
 import json
 import requests
 from openai import OpenAI
+from dotenv import load_dotenv
 
-client = OpenAI(api_key="YOUR_KEY")
+# Load environment variables from .env file
+load_dotenv()
+
+# Use environment variable for API key
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def call_llm(system_prompt: str, user_prompt: str, json_mode: bool = False) -> str:
     kwargs = {}
@@ -11,7 +16,7 @@ def call_llm(system_prompt: str, user_prompt: str, json_mode: bool = False) -> s
         kwargs["response_format"] = {"type": "json_object"}
 
     resp = client.chat.completions.create(
-        model="gpt-4.1-mini",  # or any chat-capable model you use
+        model="gpt-4o-mini",  # Corrected model name
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -27,7 +32,7 @@ def call_candidate(candidate_url: str, message: str) -> str | None:
         ]
     }
     try:
-        resp = requests.post(candidate_url, json=payload, timeout=10)
+        resp = requests.post(candidate_url, json=payload, timeout=60)  # Increased to 60 seconds for real AI agents
         resp.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"[WARN] Error calling candidate {candidate_url}: {e}")
