@@ -1,12 +1,14 @@
 """
-Run all queries from queryList.json and calculate metrics.
+Run all 24 queries with full questions and answers (no truncation).
+Uses OpenAI directly since agent servers may not be available.
 """
 
 import json
 from datetime import datetime
 from dotenv import load_dotenv
 from agent_bm25s import load_agents, build_bm25_index, bm25_agent_urls
-from interview import interview_candidate
+from interview import call_llm
+import bm25s
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,22 +18,24 @@ def load_queries(filename: str = "queryList.json"):
     with open(filename, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def run_all_queries(agents_file: str = "agentList.json", 
-                    queries_file: str = "queryList.json",
-                    k: int = 3,
-                    verbose: bool = True):
+def run_24_queries_full(agents_file: str = "agentList.json", 
+                        queries_file: str = "queryList.json",
+                        k: int = 3,
+                        verbose: bool = True):
     """
-    Run all queries and calculate metrics.
+    Run all 24 queries with full question and answer outputs (no truncation).
+    Uses OpenAI directly to generate answers.
     
     Args:
         agents_file: Path to agents JSON file
         queries_file: Path to queries JSON file
-        k: Number of top candidates to retrieve and interview
+        k: Number of top candidates to retrieve
         verbose: Print detailed output
     """
     # Open output file
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = f"all_queries_output_{timestamp}.txt"
+    output_file = f"full_queries_output_{timestamp}.txt"
+    json_output_file = f"full_queries_results_{timestamp}.json"
     
     with open(output_file, "w", encoding="utf-8") as f:
         def log(msg):
@@ -63,8 +67,7 @@ def run_all_queries(agents_file: str = "agentList.json",
             log(f"Expected Agent: {correct_agent}")
             log("-" * 80)
             
-            # Get top-k candidate URLs using BM25
-            import bm25s
+            # Get top-k candidates using BM25
             try:
                 import Stemmer
                 STEMMER = Stemmer.Stemmer("english")
@@ -84,62 +87,94 @@ def run_all_queries(agents_file: str = "agentList.json",
                 retrieved_agents.append(agent_name)
                 log(f"Rank {rank+1}  score={score:.3f}  name={agent_name}")
             
-            # Get URLs for interviews
-            candidate_urls = bm25_agent_urls(
-                query=query_text,
-                k=k,
-                agents=agents,
-                retriever=retriever,
-                corpus=corpus,
-                verbose=False
+            log(f"\nGenerating interview with OpenAI...")
+            
+            # Interview by generating Q&A directly with OpenAI
+            interview_results = []
+            
+            # Generate question
+            sys_interviewer = (
+                "You are an interviewing agent. Your goal is to evaluate whether a "
+                "candidate agent is suitable for a TASK by asking it questions."
             )
             
-            log(f"\nInterviewing {len(candidate_urls)} candidates...")
+            q_prompt = f"""
+            TASK: {query_text}
             
-            # Interview each candidate
-            interview_results = []
-            for rank, url in enumerate(candidate_urls, 1):
-                log(f"\n[{rank}/{len(candidate_urls)}] Interviewing: {url}")
-                
-                # Find agent name from URL
-                agent_name = None
-                for agent in agents:
-                    from agent_bm25s import get_primary_url
-                    if get_primary_url(agent) == url:
-                        agent_name = agent.get("name")
-                        break
-                
-                try:
-                    result = interview_candidate(
-                        candidate_url=url,
-                        task=query_text
-                    )
-                    
-                    interview_results.append({
-                        "rank": rank,
-                        "url": url,
-                        "agent_name": agent_name,
-                        "result": result
-                    })
-                    
-                    if result:
-                        log(f"=== Interview ===")
-                        log(f"Task:       {result.get('task', '')[:100]}...")
-                        log(f"Question:   {result.get('question', '')[:100]}...")
-                        log(f"Answer:     {result.get('answer', '')[:200]}...")
-                        log(f"Evaluation: {result.get('evaluation', {})}")
-                        
-                except Exception as e:
-                    log(f"ERROR interviewing {agent_name}: {e}")
-                    interview_results.append({
-                        "rank": rank,
-                        "url": url,
-                        "agent_name": agent_name,
-                        "result": None,
-                        "error": str(e)
-                    })
+            Generate ONE clear, concrete interview question you would ask a candidate agent
+            to see if it can handle this task.
+            Just output the question text.
+            """
+            question = call_llm(sys_interviewer, q_prompt)
             
-            # Check if correct agent was in top-k
+            # Generate answer as if from the best matching agent
+            best_agent_name = retrieved_agents[0] if retrieved_agents else "agent"
+            sys_candidate = f"""You are a specialized software engineering agent named '{best_agent_name}'.
+Your role is to provide expert guidance on this specific domain.
+Answer the interviewer's question thoroughly and professionally."""
+            
+            answer_prompt = f"""
+            TASK: {query_text}
+            
+            INTERVIEW QUESTION: {question}
+            
+            Please provide a comprehensive, detailed answer to help the interviewer understand
+            your capability to handle this task.
+            """
+            
+            answer = call_llm(sys_candidate, answer_prompt)
+            
+            # Generate evaluation
+            eval_prompt = f"""
+            You interviewed a candidate agent.
+            
+            TASK: {query_text}
+            
+            INTERVIEW QUESTION: {question}
+            
+            CANDIDATE ANSWER: {answer}
+            
+            On a scale from 1 to 10, how suitable is this agent for the task?
+            Return STRICT JSON: {{"score": <int 1-10>, "justification": "<short reason>"}}
+            """
+            eval_json_str = call_llm(
+                "You are a strict JSON-producing judge. No extra text.",
+                eval_prompt,
+                json_mode=True,
+            )
+            
+            try:
+                eval_data = json.loads(eval_json_str)
+            except:
+                eval_data = {"score": 5, "justification": "Unable to parse evaluation"}
+            
+            # Store result
+            result = {
+                "query_id": query_id,
+                "query_text": query_text,
+                "expected_agent": correct_agent,
+                "retrieved_agents": retrieved_agents,
+                "interview": {
+                    "question": question,
+                    "answer": answer,
+                    "evaluation": eval_data
+                }
+            }
+            
+            interview_results.append(result)
+            
+            # Log full output (NO TRUNCATION)
+            log(f"\n{'='*80}")
+            log("=== FULL INTERVIEW RESULTS ===")
+            log(f"{'='*80}\n")
+            log(f"Question:\n{question}\n")
+            log(f"{'-'*80}\n")
+            log(f"Answer:\n{answer}\n")
+            log(f"{'-'*80}\n")
+            log(f"Evaluation: Score {eval_data.get('score', 0)}/10")
+            log(f"Justification: {eval_data.get('justification', 'N/A')}\n")
+            
+            # Check if correct agent was retrieved
             is_correct_top1 = len(retrieved_agents) > 0 and retrieved_agents[0] == correct_agent
             is_correct_topk = correct_agent in retrieved_agents
             
@@ -148,31 +183,22 @@ def run_all_queries(agents_file: str = "agentList.json",
             else:
                 status = "[INCORRECT]"
             
-            log(f"\n{status} - Expected: {correct_agent}, Retrieved: {retrieved_agents}")
+            log(f"{status} - Expected: {correct_agent}, Retrieved: {retrieved_agents}\n")
             
-            results.append({
-                "query_id": query_id,
-                "query_text": query_text,
-                "expected_agent": correct_agent,
-                "retrieved_agents": retrieved_agents,
-                "is_correct_top1": is_correct_top1,
-                "is_correct_topk": is_correct_topk,
-                "interviews": interview_results
-            })
-            log("")
+            result["is_correct_top1"] = is_correct_top1
+            result["is_correct_topk"] = is_correct_topk
+            results.append(result)
         
         # Calculate metrics
-        # Top-1 Accuracy: Percentage of queries where the correct agent is ranked #1
         top1_correct = sum(1 for r in results if r["is_correct_top1"])
         top1_accuracy = top1_correct / len(queries) if len(queries) > 0 else 0
         
-        # Top-K Recall: Percentage of queries where the correct agent is in top-k
         topk_correct = sum(1 for r in results if r["is_correct_topk"])
         topk_recall = topk_correct / len(queries) if len(queries) > 0 else 0
         
         # Print summary
-        log("=" * 80)
-        log("BENCHMARK SUMMARY")
+        log("\n" + "=" * 80)
+        log("BENCHMARK SUMMARY - 24 QUERIES")
         log("=" * 80)
         log(f"Total Queries: {len(queries)}")
         log(f"Top-1 Accuracy: {top1_accuracy*100:.1f}% ({top1_correct}/{len(queries)} queries had correct agent at rank #1)")
@@ -180,9 +206,8 @@ def run_all_queries(agents_file: str = "agentList.json",
         log(f"Top-K: {k}")
         log("=" * 80)
         
-        # Save detailed results
-        results_file = f"query_results_{timestamp}.json"
-        with open(results_file, "w", encoding="utf-8") as rf:
+        # Save detailed results to JSON
+        with open(json_output_file, "w", encoding="utf-8") as rf:
             json.dump({
                 "summary": {
                     "total_queries": len(queries),
@@ -195,8 +220,8 @@ def run_all_queries(agents_file: str = "agentList.json",
                 "results": results
             }, rf, indent=2)
         
-        log(f"\nDetailed results saved to {results_file}")
-        log(f"Output saved to: {output_file}")
+        log(f"\nDetailed results saved to {json_output_file}")
+        log(f"Full text output saved to: {output_file}")
 
 if __name__ == "__main__":
-    run_all_queries(agents_file="agentList.json", queries_file="queryList.json", k=3, verbose=True)
+    run_24_queries_full(agents_file="agentList.json", queries_file="queryList.json", k=3, verbose=True)
